@@ -9,7 +9,9 @@ import Link from 'next/link'
 function CatInner() {
   const { slug } = useParams()
   const [items, setItems] = useState([])
-  const cat = CATEGORIES.find(c => c.slug === slug)
+  const [categories,setCategories] = useState(CATEGORIES)
+  const cat = categories.find(c => c.slug === slug)
+  useEffect(() => { fetch('/api/categories').then(r=>r.json()).then(d=>{if(Array.isArray(d.items))setCategories(d.items)}).catch(()=>{}) },[])
   useEffect(() => {
     if (!slug) return
     fetch(`/api/products?category=${slug}&limit=48&sort=popular`).then(r=>r.json()).then(d => setItems(d.items||[]))
