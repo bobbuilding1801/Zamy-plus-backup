@@ -17,7 +17,8 @@ function b64url(buf) { return Buffer.from(buf).toString('base64').replace(/\+/g,
 function b64urlDecode(s) { s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; return Buffer.from(s, 'base64').toString() }
 function sign(payload, secret) { return crypto.createHmac('sha256', secret).update(payload).digest('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'') }
 function makeToken(email, role) {
-  const secret = process.env.AUTH_SECRET || 'dev-secret'
+  const secret = process.env.AUTH_SECRET
+  if (!secret) throw new Error('AUTH_SECRET is not configured')
   const body = JSON.stringify({ email, role, iat: Date.now(), exp: Date.now() + 7*86400000 })
   const p = b64url(body); const sig = sign(p, secret)
   return `${p}.${sig}`
@@ -26,7 +27,8 @@ function verifyToken(token) {
   try {
     const [p, sig] = String(token || '').split('.')
     if (!p || !sig) return null
-    const secret = process.env.AUTH_SECRET || 'dev-secret'
+    const secret = process.env.AUTH_SECRET
+    if (!secret) return null
     if (sign(p, secret) !== sig) return null
     const data = JSON.parse(b64urlDecode(p))
     if (!data.exp || data.exp < Date.now()) return null
@@ -167,9 +169,11 @@ async function handler(request, { params }) {
     // ---- AUTH ----
     if (route === '/auth/login' && method === 'POST') {
       const { email = '', password = '', role = 'admin' } = await request.json()
+      if (!['admin', 'seller'].includes(role)) return cors(NextResponse.json({ ok:false, error:'Invalid role' }, { status:400 }))
       const cfg = role === 'seller'
-        ? { emails: (process.env.SELLER_EMAILS || 'seller@zamy.market').toLowerCase().split(',').map(s=>s.trim()), password: process.env.SELLER_PASSWORD || 'zamy2025' }
-        : { emails: (process.env.ADMIN_EMAILS  || 'admin@zamy.market' ).toLowerCase().split(',').map(s=>s.trim()), password: process.env.ADMIN_PASSWORD  || 'zamy2025' }
+        ? { emails: (process.env.SELLER_EMAILS || 'seller@zamy.market').toLowerCase().split(',').map(s=>s.trim()), password: process.env.SELLER_PASSWORD }
+        : { emails: (process.env.ADMIN_EMAILS  || 'admin@zamy.market' ).toLowerCase().split(',').map(s=>s.trim()), password: process.env.ADMIN_PASSWORD }
+      if (!cfg.password || !process.env.AUTH_SECRET || !process.env.ADMIN_EMAILS && role === 'admin' || !process.env.SELLER_EMAILS && role === 'seller') return cors(NextResponse.json({ ok:false, error:'Authentication is not configured' }, { status:503 }))
       const em = String(email).toLowerCase().trim()
       if (!cfg.emails.includes(em)) return cors(NextResponse.json({ ok:false, error: 'Email not authorized for this role.' }, { status: 401 }))
       if (String(password) !== cfg.password) return cors(NextResponse.json({ ok:false, error: 'Incorrect password.' }, { status: 401 }))
@@ -428,13 +432,25 @@ async function handler(request, { params }) {
     // Orders (with stock decrement + email confirmations)
     if (route === '/orders' && method === 'POST') {
       const body = await request.json()
-      const wantedItems = (body.items || []).map(i => ({ id: i.id, qty: i.qty || 1 }))
+      const wantedItems = (body.items || []).map(i => ({ id: String(i.id || ''), qty: Number(i.qty) }))
+      if (!wantedItems.length || new Set(wantedItems.map(i => i.id)).size !== wantedItems.length || wantedItems.some(i => !i.id || !Number.isSafeInteger(i.qty) || i.qty < 1 || i.qty > 100)) return cors(NextResponse.json({ ok:false, error:'Invalid order items' }, { status:400 }))
+      const database = await getDb().catch(() => null)
+      if (!database) return cors(NextResponse.json({ ok:false, error:'Database unavailable' }, { status:503 }))
       for (const it of wantedItems) {
         const p = await findProductAsync(it.id)
         if (!p) return cors(NextResponse.json({ ok:false, error: `Product ${it.id} not found` }, { status: 400 }))
         if ((p.stock || 0) < it.qty) return cors(NextResponse.json({ ok:false, error: `Only ${p.stock} left of "${p.name}"` }, { status: 409 }))
       }
-      const decremented = await decrementStock(wantedItems)
+      // Reserve stock atomically; roll back reservations if any item fails or order save fails.
+      const reserved = []
+      const rollback = async () => { for (const it of reserved) await database.collection('products').updateOne({ id: it.id }, { $inc: { stock: it.qty } }) }
+      try {
+        for (const it of wantedItems) {
+          const r = await database.collection('products').updateOne({ id: it.id, stock: { $gte: it.qty } }, { $inc: { stock: -it.qty } })
+          if (!r.modifiedCount) { await rollback(); return cors(NextResponse.json({ ok:false, error:'Insufficient stock; please refresh your cart' }, { status:409 })) }
+          reserved.push(it)
+        }
+      } catch (e) { await rollback(); throw e }
       // If customer is signed in, attach email from token
       const custAuth = requireAuth(request, 'customer')
       if (custAuth && (!body.address || !body.address.email)) {
@@ -451,7 +467,11 @@ async function handler(request, { params }) {
         })
       }
       const order = { id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', ...body, items: enrichedItems }
-      try { const database = await getDb(); await database.collection('orders').insertOne({ ...order }) } catch {}
+      try { await database.collection('orders').insertOne({ ...order }) } catch (e) {
+        await rollback()
+        console.error('Order save failed', e)
+        return cors(NextResponse.json({ ok:false, error:'Could not save order; please try again' }, { status:503 }))
+      }
 
       // Fire and forget emails (customer + admin)
       const itemsHtml = buildItemsHtml(order)
@@ -462,7 +482,7 @@ async function handler(request, { params }) {
         adminList.length ? sendOrderAdminEmail({ to: adminList, order, itemsHtml }).catch(e => console.error('admin email', e)) : null,
       ])
 
-      return cors(NextResponse.json({ ok: true, order, stock: decremented }))
+      return cors(NextResponse.json({ ok: true, order }))
     }
 
     // Order tracking — pulls real order status if available
