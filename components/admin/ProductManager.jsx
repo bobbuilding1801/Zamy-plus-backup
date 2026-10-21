@@ -31,6 +31,7 @@ function stringToSpecs(s) {
 
 export default function ProductManager({ token, onChanged }) {
   const [items, setItems] = useState([])
+  const [categories, setCategories] = useState(CATEGORIES)
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -45,8 +46,9 @@ export default function ProductManager({ token, onChanged }) {
       .finally(() => setLoading(false))
   }
   useEffect(() => { if (token) load() }, [token])
+  useEffect(() => { fetch('/api/categories').then(r => r.json()).then(d => { if (Array.isArray(d.items)) setCategories(d.items) }).catch(() => {}) }, [])
 
-  const openNew = () => { setEditing(null); setForm(empty()); setOpen(true) }
+  const openNew = () => { const first = categories[0]; setEditing(null); setForm({...empty(),category:first?.slug || '',subcategory:first?.subs?.[0] || ''}); setOpen(true) }
   const openEdit = (p) => {
     setEditing(p)
     setForm({
@@ -100,7 +102,7 @@ export default function ProductManager({ token, onChanged }) {
     } catch (e) { toast.error(String(e.message || e)) }
   }
 
-  const cat = CATEGORIES.find(c => c.slug === form.category) || CATEGORIES[0]
+  const cat = categories.find(c => c.slug === form.category) || { subs: [] }
 
   return (
     <div>
@@ -171,9 +173,9 @@ export default function ProductManager({ token, onChanged }) {
               </div>
               <div>
                 <Label>Category</Label>
-                <Select value={form.category} onValueChange={v => setForm({...form, category:v, subcategory: (CATEGORIES.find(c=>c.slug===v)||{}).subs?.[0] || ''})}>
+                <Select value={form.category} onValueChange={v => setForm({...form, category:v, subcategory: (categories.find(c=>c.slug===v)||{}).subs?.[0] || ''})}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
+                  <SelectContent>{categories.map(c => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
