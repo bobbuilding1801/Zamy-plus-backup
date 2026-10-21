@@ -492,7 +492,7 @@ async function handler(request, { params }) {
       const custEmail = order.address?.email
       const adminList = adminNotifyEmails()
       Promise.all([
-        custEmail ? sendOrderCustomerEmail({ to: custEmail, order, itemsHtml }).catch(e => console.error('cust email', e)) : null,
+        custEmail ? sendOrderEventEmail(shippingDb, 'confirmed', order).catch(e => console.error('cust email', e)) : null,
         adminList.length ? sendOrderAdminEmail({ to: adminList, order, itemsHtml }).catch(e => console.error('admin email', e)) : null,
       ])
 
