@@ -44,10 +44,9 @@ export function AdminOrdersTable({ token, initialOrders = [] }) {
             <td className="p-3"><div className="flex items-center gap-2">{o.image && <img src={o.image} className="h-8 w-8 rounded object-cover" alt="" />}<span className="line-clamp-1 max-w-[240px]">{o.product}</span></div></td>
             <td className="p-3 text-right font-bold">{formatINR(o.total)}</td>
             <td className="p-3">
-              <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)} disabled={saving===o.id}>
-                <SelectTrigger className="w-[130px] h-8"><SelectValue /></SelectTrigger>
-                <SelectContent>{STATUSES.map(s => <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
-              </Select>
+              <select aria-label={`Status for order ${o.id}`} value={o.status} onChange={(e) => setStatus(o.id, e.target.value)} disabled={saving===o.id} className="w-[145px] h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground disabled:opacity-50">
+                {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+              </select>
             </td>
             <td className="p-3"><a href={`/track/${o.id}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">Track</a></td>
           </tr>
