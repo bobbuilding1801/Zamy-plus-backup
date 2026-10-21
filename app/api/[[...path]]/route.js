@@ -543,12 +543,7 @@ async function handler(request, { params }) {
     if (route === '/admin/coupons' && method === 'GET') {
       const database = await getDb().catch(() => null)
       const stored = database ? await database.collection('coupons').find({}).toArray().catch(() => []) : []
-      const items = stored.length ? stored.map(({_id, ...r}) => r) : [
-        { code:'WELCOME10', discount:'10%', min:0, uses:1245, cap:'₹2000' },
-        { code:'ZAMY20', discount:'20%', min:1499, uses:632, cap:'₹5000' },
-        { code:'FLAT500', discount:'₹500', min:2999, uses:412, cap:'–' },
-        { code:'FREESHIP', discount:'Free shipping', min:0, uses:2210, cap:'–' },
-      ]
+      const items = stored.map(({ _id, ...coupon }) => coupon)
       return cors(NextResponse.json({ items }))
     }
     // Admin product management
