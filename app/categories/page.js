@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useState } from 'react'
 import SiteChrome from '@/components/site/SiteChrome'
 import { CATEGORIES } from '@/lib/data'
 import Link from 'next/link'
@@ -6,11 +7,13 @@ import { Smartphone, Cpu, Car, Headphones, Zap, Factory, Home, Briefcase } from 
 const ICONS = { Smartphone, Cpu, Car, Headphones, Zap, Factory, Home, Briefcase }
 
 function Inner() {
+  const [categories,setCategories] = useState(CATEGORIES)
+  useEffect(() => { fetch('/api/categories').then(r=>r.json()).then(d=>{if(Array.isArray(d.items))setCategories(d.items)}).catch(()=>{}) },[])
   return (
     <div className="container px-4 md:px-6 py-10">
       <h1 className="text-3xl md:text-4xl font-black mb-6">All Categories</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {CATEGORIES.map(c => {
+        {categories.map(c => {
           const I = ICONS[c.icon] || Smartphone
           return (
             <div key={c.slug} className="rounded-2xl border p-6 hover:shadow-premium transition">
