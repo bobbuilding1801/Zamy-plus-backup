@@ -69,7 +69,7 @@ function Home() {
       <ProductRail title="Top Rated" subtitle="Highest rated by our community" products={sections?.topRated || []} viewAll="/shop?tag=toprated" />
       <ProductRail title="Limited Time Deals" subtitle="Grab them before they're gone" products={sections?.deals || []} viewAll="/deals" />
 
-      {aiRecs.items.length > 0 && (
+      {Array.isArray(aiRecs?.items) && aiRecs.items.length > 0 && (
         <section>
           <div className="container px-4 md:px-6 pt-8">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/15 text-black dark:text-primary px-3 py-1 text-[11px] font-bold uppercase tracking-widest"><Sparkles size={12} /> AI Picks for You</div>
