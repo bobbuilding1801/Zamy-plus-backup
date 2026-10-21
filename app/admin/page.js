@@ -14,6 +14,7 @@ import AuthBar from '@/components/site/AuthBar'
 import ProductManager from '@/components/admin/ProductManager'
 import CategoryManager from '@/components/admin/CategoryManager'
 import ShippingManager from '@/components/admin/ShippingManager'
+import CmsManager from '@/components/admin/CmsManager'
 import { AdminOrdersTable, AdminCoupons, AdminReviews, AdminReports, AdminReturns, AdminTickets } from '@/components/admin/AdminModules'
 
 const NAV = [
@@ -240,7 +241,7 @@ function Inner() {
       </div>
     )
     if (tab === 'users') return <Placeholder t="User Management" d="Admins, moderators, sellers, staff — assign roles & permissions." />
-    if (tab === 'cms') return <Placeholder t="CMS Pages" d="Edit About, Contact, Legal, and static pages inline." />
+    if (tab === 'cms') return <CmsManager />
     if (tab === 'emails') return <Placeholder t="Email Templates" d="Order confirmation, shipping, delivery, refund emails with variable placeholders." />
     if (tab === 'categories') return <CategoryManager />
     if (tab === 'settings') return <Placeholder t="Settings" d="Store name, contact, currency, payment providers, integrations." />
