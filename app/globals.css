@@ -106,3 +106,12 @@
 /* Marquee for promo bar */
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .animate-marquee { animation: marquee 32s linear infinite; }
+
+/* Premium black-and-yellow storefront, scoped to homepage only. */
+.premium-home { background:#080808; color:#f8f8f8; }
+.premium-home .glass { background:rgba(10,10,10,.9); border-color:rgba(255,255,255,.12); }
+.premium-home .shadow-premium { box-shadow:0 16px 45px rgba(0,0,0,.42); }
+.premium-home main > section, .premium-home main > div { position:relative; }
+.premium-home .rail > div { transition:transform .2s ease; }
+.premium-home .rail > div:hover { transform:translateY(-3px); }
+.premium-home a:focus-visible, .premium-home button:focus-visible { outline:2px solid #ffd400; outline-offset:3px; }
