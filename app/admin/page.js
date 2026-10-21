@@ -43,6 +43,8 @@ function Inner() {
   const tab = sp.get('tab') || 'dashboard'
   const [analytics, setAnalytics] = useState(null)
   const [orders, setOrders] = useState([])
+  const [ordersError, setOrdersError] = useState('')
+  const [ordersLoading, setOrdersLoading] = useState(true)
   const [customers, setCustomers] = useState([])
   const [coupons, setCoupons] = useState([])
   const [reviews, setReviews] = useState([])
@@ -66,7 +68,13 @@ function Inner() {
     const h = { Authorization: `Bearer ${gate.user.token}` }
     const j = (u) => fetch(u, { headers: h }).then(r => r.json())
     j('/api/admin/analytics').then(setAnalytics)
-    j('/api/admin/orders').then(d => setOrders(d.items || []))
+    setOrdersLoading(true)
+    setOrdersError('')
+    fetch('/api/admin/orders', { headers: h, cache: 'no-store' })
+      .then(async r => { const d = await r.json(); if (!r.ok || !Array.isArray(d.items)) throw new Error(d.error || `Orders request failed (${r.status})`); return d.items })
+      .then(items => setOrders(items))
+      .catch(e => setOrdersError(e.message || 'Unable to load orders'))
+      .finally(() => setOrdersLoading(false))
     j('/api/admin/customers').then(d => setCustomers(d.items || []))
     j('/api/admin/coupons').then(d => setCoupons(d.items || []))
     j('/api/admin/reviews').then(d => setReviews(d.items || []))
@@ -162,7 +170,7 @@ function Inner() {
     if (tab === 'orders') return (
       <div className="space-y-3">
         <div className="flex items-center justify-between"><h2 className="text-xl font-black">Orders</h2><div className="text-xs text-muted-foreground">Change status inline — customer &amp; admin get updated tracking</div></div>
-        <AdminOrdersTable token={gate.user?.token} initialOrders={orders} />
+        {ordersLoading ? <p role="status" className="text-sm text-muted-foreground">Loading orders…</p> : ordersError ? <p role="alert" className="text-sm text-red-600">Could not load orders: {ordersError}</p> : <AdminOrdersTable token={gate.user?.token} initialOrders={orders} />}
       </div>
     )
     if (tab === 'products') return (
