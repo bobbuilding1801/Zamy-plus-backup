@@ -12,7 +12,7 @@ import { CATEGORIES, BRANDS } from '@/lib/data'
 import { SlidersHorizontal, Search as SearchIcon } from 'lucide-react'
 import StarRating from '@/components/site/StarRating'
 
-function Filters({ filters, setFilters }) {
+function Filters({ filters, setFilters, categories }) {
   const toggleBrand = (b) => setFilters(f => ({ ...f, brand: f.brand.includes(b) ? f.brand.filter(x=>x!==b) : [...f.brand, b] }))
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ function Filters({ filters, setFilters }) {
           <label className="flex items-center gap-2 cursor-pointer text-sm">
             <input type="radio" name="cat" checked={!filters.category} onChange={() => setFilters(f => ({ ...f, category:'', subcategory:'' }))} /> All
           </label>
-          {CATEGORIES.map(c => (
+          {categories.map(c => (
             <label key={c.slug} className="flex items-center gap-2 cursor-pointer text-sm">
               <input type="radio" name="cat" checked={filters.category===c.slug} onChange={() => setFilters(f => ({ ...f, category:c.slug, subcategory:'' }))} /> {c.name}
             </label>
@@ -72,6 +72,8 @@ function Filters({ filters, setFilters }) {
 function ShopInner() {
   const sp = useSearchParams()
   const router = useRouter()
+  const [categories,setCategories] = useState(CATEGORIES)
+  useEffect(() => { fetch('/api/categories').then(r=>r.json()).then(d=>{if(Array.isArray(d.items))setCategories(d.items)}).catch(()=>{}) },[])
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -109,7 +111,7 @@ function ShopInner() {
     <div className="container px-4 md:px-6 py-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold">{filters.q ? `Results for “${filters.q}”` : filters.category ? CATEGORIES.find(c=>c.slug===filters.category)?.name : 'All Products'}</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold">{filters.q ? `Results for “${filters.q}”` : filters.category ? categories.find(c=>c.slug===filters.category)?.name : 'All Products'}</h1>
           <p className="text-sm text-muted-foreground">{total.toLocaleString()} products</p>
         </div>
         <div className="flex items-center gap-2">
@@ -119,7 +121,7 @@ function ShopInner() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[320px] overflow-y-auto">
               <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
-              <div className="mt-4"><Filters filters={filters} setFilters={setFilters} /></div>
+              <div className="mt-4"><Filters filters={filters} setFilters={setFilters} categories={categories} /></div>
             </SheetContent>
           </Sheet>
           <Select value={filters.sort} onValueChange={(v) => setFilters(f => ({ ...f, sort:v }))}>
