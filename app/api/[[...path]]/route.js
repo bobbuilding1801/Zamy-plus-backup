@@ -620,7 +620,8 @@ async function handler(request, { params }) {
       const status = String(body.status || 'confirmed')
       const allowed = ['confirmed','packed','shipped','out','delivered','cancelled']
       if (!allowed.includes(status)) return cors(NextResponse.json({ ok:false, error:'Invalid status' }, { status: 400 }))
-      await database.collection('orders').updateOne({ id }, { $set: { status } })
+      const result = await database.collection('orders').updateOne({ id }, { $set: { status, updatedAt: Date.now() } })
+      if (!result.matchedCount) return cors(NextResponse.json({ ok:false, error:'Order not found' }, { status:404 }))
       return cors(NextResponse.json({ ok:true }))
     }
 
