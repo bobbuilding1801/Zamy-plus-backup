@@ -16,7 +16,7 @@ function Inner() {
   const initialRole = sp.get('role') || 'admin'
   const next = sp.get('next') || (initialRole === 'seller' ? '/seller' : '/admin')
   const [role, setRole] = useState(initialRole)
-  const [email, setEmail] = useState(role === 'seller' ? 'seller@zamy.market' : 'admin@zamy.market')
+  const [email, setEmail] = useState(role === 'seller' ? 'seller@zamy.market' : role === 'admin' ? 'admin@zamy.market' : '')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -32,7 +32,7 @@ function Inner() {
 
   const switchRole = (r) => {
     setRole(r)
-    setEmail(r === 'seller' ? 'seller@zamy.market' : 'admin@zamy.market')
+    setEmail(r === 'seller' ? 'seller@zamy.market' : r === 'admin' ? 'admin@zamy.market' : '')
   }
 
   return (
@@ -61,6 +61,8 @@ function Inner() {
           <div className="md:hidden mb-8 flex items-center gap-3"><Logo size={44} /><span className="font-black tracking-widest text-xl">ZAMY</span></div>
           <div className="inline-flex rounded-full border p-1 bg-secondary mb-6">
             <button onClick={() => switchRole('admin')} className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition ${role==='admin'?'bg-primary text-primary-foreground':'text-muted-foreground'}`}><ShieldCheck size={14} /> Admin</button>
+            <button onClick={() => switchRole('product')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition ${role==='product'?'bg-primary text-primary-foreground':'text-muted-foreground'}`}>Products</button>
+            <button onClick={() => switchRole('support')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition ${role==='support'?'bg-primary text-primary-foreground':'text-muted-foreground'}`}>Support</button>
             <button onClick={() => switchRole('seller')} className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition ${role==='seller'?'bg-primary text-primary-foreground':'text-muted-foreground'}`}><Store size={14} /> Seller</button>
           </div>
           <h2 className="text-3xl font-black">Sign in</h2>
@@ -77,7 +79,7 @@ function Inner() {
                 <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-11 rounded-full font-bold">
-                {loading ? 'Signing in…' : `Sign in as ${role === 'seller' ? 'Seller' : 'Admin'}`}
+                {loading ? 'Signing in…' : `Sign in as ${role === 'seller' ? 'Seller' : role === 'product' ? 'Product Development' : role === 'support' ? 'Customer Service' : 'Admin'}`}
               </Button>
             </form>
             <div className="mt-5 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 p-3 text-xs">
