@@ -15,7 +15,7 @@ const STATUS_LABEL = { confirmed:'Confirmed', packed:'Packed', shipped:'Shipped'
 
 export function AdminOrdersTable({ token, initialOrders = [] }) {
   const [orders, setOrders] = useState(initialOrders)
-  const [saving, setSaving] = useState('')
+  const [saving, setSaving] = useState(null)
 
   useEffect(() => { setOrders(initialOrders) }, [initialOrders])
 
@@ -28,7 +28,7 @@ export function AdminOrdersTable({ token, initialOrders = [] }) {
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
       toast.success(`Order #${id} → ${STATUS_LABEL[status]}`)
     } catch (e) { toast.error(String(e.message || e)) }
-    finally { setSaving('') }
+    finally { setSaving(null) }
   }
 
   return (
