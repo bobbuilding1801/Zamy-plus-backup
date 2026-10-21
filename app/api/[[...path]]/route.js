@@ -530,6 +530,22 @@ async function handler(request, { params }) {
     if (route.startsWith('/seller/')) {
       if (!requireAuth(request, 'seller')) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
     }
+    if (route === '/cms' && method === 'GET') {
+      const database = await getDb()
+      const pages = await database.collection('cms_pages').find({}).project({ _id:0 }).toArray()
+      return cors(NextResponse.json({ items:pages }))
+    }
+    if (route === '/admin/cms' && method === 'PUT') {
+      const body = await request.json()
+      const key = String(body.key || '')
+      if (!['about','contact','privacy','terms','returns','refunds','shipping'].includes(key)) return cors(NextResponse.json({ error:'Unknown page' }, { status:400 }))
+      const title = String(body.title || '').trim().slice(0,150)
+      const content = String(body.content || '').trim().slice(0,30000)
+      if (!title || !content) return cors(NextResponse.json({ error:'Title and content required' }, { status:400 }))
+      const database = await getDb()
+      await database.collection('cms_pages').updateOne({ key }, { $set:{ key,title,content,updatedAt:Date.now() } }, { upsert:true })
+      return cors(NextResponse.json({ ok:true }))
+    }
     if (route === '/shipping-settings' && method === 'GET') {
       const database = await getDb()
       const saved = await database.collection('store_settings').findOne({ key:'shipping' })
