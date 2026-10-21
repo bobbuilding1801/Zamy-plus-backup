@@ -40,7 +40,10 @@ const PIE_COLORS = ['#FFD400','#111','#4b5563','#9ca3af','#f59e0b','#fde68a','#3
 function Inner() {
   const gate = useAuthGate('admin')
   const sp = useSearchParams()
-  const tab = sp.get('tab') || 'dashboard'
+  const requestedTab = sp.get('tab') || 'dashboard'
+  const role = gate.user?.role || 'admin'
+  const allowedTabs = role === 'product' ? ['products'] : role === 'support' ? ['tickets','returns'] : NAV.map(n => n.k)
+  const tab = allowedTabs.includes(requestedTab) ? requestedTab : allowedTabs[0]
   const [analytics, setAnalytics] = useState(null)
   const [orders, setOrders] = useState([])
   const [ordersError, setOrdersError] = useState('')
@@ -67,7 +70,8 @@ function Inner() {
     if (gate.loading || !gate.user) return
     const h = { Authorization: `Bearer ${gate.user.token}` }
     const j = (u) => fetch(u, { headers: h }).then(r => r.json())
-    j('/api/admin/analytics').then(setAnalytics)
+    if (role === 'admin') j('/api/admin/analytics').then(setAnalytics)
+    if (role === 'admin') {
     setOrdersLoading(true)
     setOrdersError('')
     fetch('/api/admin/orders', { headers: h, cache: 'no-store' })
@@ -75,12 +79,13 @@ function Inner() {
       .then(items => setOrders(items))
       .catch(e => setOrdersError(e.message || 'Unable to load orders'))
       .finally(() => setOrdersLoading(false))
-    j('/api/admin/customers').then(d => setCustomers(d.items || []))
-    j('/api/admin/coupons').then(d => setCoupons(d.items || []))
-    j('/api/admin/reviews').then(d => setReviews(d.items || []))
-    j('/api/admin/products').then(d => setProducts(d.items || []))
-    j('/api/admin/banners').then(d => setBanners(d.items || [])).catch(() => setBannerMessage('Unable to load banners'))
-  }, [gate.loading, gate.user])
+    }
+    if (role === 'admin') j('/api/admin/customers').then(d => setCustomers(d.items || []))
+    if (role === 'admin') j('/api/admin/coupons').then(d => setCoupons(d.items || []))
+    if (role === 'admin') j('/api/admin/reviews').then(d => setReviews(d.items || []))
+    if (role === 'admin') j('/api/admin/products').then(d => setProducts(d.items || []))
+    if (role === 'admin') j('/api/admin/banners').then(d => setBanners(d.items || [])).catch(() => setBannerMessage('Unable to load banners'))
+  }, [gate.loading, gate.user, role])
 
   if (gate.loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Verifying access…</div>
 
@@ -245,7 +250,7 @@ function Inner() {
       <aside className="col-span-12 md:col-span-3 lg:col-span-2 border-r bg-sidebar text-sidebar-foreground p-3 md:min-h-screen">
         <div className="flex items-center gap-2 p-2 mb-2"><Logo size={32} /><div className="font-black tracking-widest text-sm">ZAMY ADMIN</div></div>
         <nav className="flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
-          {NAV.map(n => { const I = n.i; return (
+          {NAV.filter(n => allowedTabs.includes(n.k)).map(n => { const I = n.i; return (
             <Link key={n.k} href={`/admin?tab=${n.k}`} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${tab===n.k?'bg-primary text-primary-foreground':'hover:bg-secondary'}`}>
               <I size={16} /> <span>{n.t}</span>
             </Link>
