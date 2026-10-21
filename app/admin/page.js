@@ -47,6 +47,19 @@ function Inner() {
   const [coupons, setCoupons] = useState([])
   const [reviews, setReviews] = useState([])
   const [products, setProducts] = useState([])
+  const [banners, setBanners] = useState([])
+  const [bannerMessage, setBannerMessage] = useState('')
+  const [savingBanners, setSavingBanners] = useState(false)
+  const editBanner = (index, field, value) => setBanners(prev => prev.map((b,i) => i === index ? { ...b, [field]: value } : b))
+  const saveBanners = async () => {
+    setSavingBanners(true); setBannerMessage('')
+    try {
+      const res = await fetch('/api/admin/banners', { method:'POST', headers: { 'Content-Type':'application/json', Authorization:`Bearer ${gate.user.token}` }, body: JSON.stringify({ slides: banners }) })
+      if (!res.ok) throw new Error('Save failed (' + res.status + ')')
+      setBannerMessage('Saved! Refresh the storefront to see the updated banners.')
+    } catch (e) { setBannerMessage(e.message || 'Could not save banners') }
+    finally { setSavingBanners(false) }
+  }
 
   useEffect(() => {
     if (gate.loading || !gate.user) return
@@ -58,6 +71,7 @@ function Inner() {
     j('/api/admin/coupons').then(d => setCoupons(d.items || []))
     j('/api/admin/reviews').then(d => setReviews(d.items || []))
     j('/api/admin/products').then(d => setProducts(d.items || []))
+    j('/api/admin/banners').then(d => setBanners(d.items || [])).catch(() => setBannerMessage('Unable to load banners'))
   }, [gate.loading, gate.user])
 
   if (gate.loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Verifying access…</div>
@@ -169,16 +183,21 @@ function Inner() {
     if (tab === 'reviews') return <AdminReviews token={gate.user?.token} initialReviews={reviews} />
     if (tab === 'reports') return <AdminReports />
     if (tab === 'banners') return (
-      <div>
-        <div className="flex items-center justify-between mb-3"><h2 className="text-xl font-black">Banner Management</h2><Button className="rounded-full">+ New Banner</Button></div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {['Mega Tech Sale','Build Your Rig','Garage Ready','Everyday Essentials'].map((b,i) => (
-            <div key={i} className="rounded-2xl border overflow-hidden">
-              <div className="aspect-[16/9] bg-gradient-to-br from-yellow-400 to-yellow-500 grid place-items-center text-black font-black text-lg">{b}</div>
-              <div className="p-3 flex justify-between items-center"><Badge>Published</Badge><div className="flex gap-2"><Button size="sm" variant="outline">Edit</Button><Button size="sm" variant="destructive">Delete</Button></div></div>
-            </div>
-          ))}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-black">Banner Management</h2>
+          <Button disabled={savingBanners} onClick={saveBanners}>{savingBanners ? 'Saving…' : 'Save Banners'}</Button>
         </div>
+        {bannerMessage && <p role="status" className="text-sm">{bannerMessage}</p>}
+        <div className="grid md:grid-cols-2 gap-4">
+          {banners.map((b,i) => <div key={i} className="rounded-2xl border p-4 space-y-3">
+            <div className="flex items-center justify-between"><strong>Banner {i+1}</strong><Button size="sm" variant="destructive" onClick={() => setBanners(prev => prev.filter((_,j) => j !== i))}>Delete</Button></div>
+            {['tag','title','subtitle','cta','href','img'].map(field => <label key={field} className="block text-sm capitalize">{field === 'img' ? 'Image URL' : field}
+              <Input className="mt-1" value={b[field] || ''} onChange={e => editBanner(i, field, e.target.value)} />
+            </label>)}
+            {b.img && <img src={b.img} alt="" className="w-full h-36 object-cover rounded-lg" />}
+          </div>)}
+        </div>
+        <Button variant="outline" onClick={() => setBanners(prev => [...prev, { tag:'New banner', title:'New promotion', subtitle:'', cta:'Shop now', href:'/', img:'', accent:'from-yellow-400 to-white' }])}>+ Add Banner</Button>
       </div>
     )
     if (tab === 'reports') return <AdminReports />
