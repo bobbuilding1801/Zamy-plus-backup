@@ -571,7 +571,7 @@ async function handler(request, { params }) {
       const body=await request.json()
       const fields={}
       for(const k of ['storeName','supportEmail','phone','address','announcement']) fields[k]=String(body[k]??'').trim().slice(0,k==='announcement'?200:300)
-      if(!fields.storeName || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(fields.supportEmail))return cors(NextResponse.json({error:'Valid store name and support email required'},{status:400}))
+      if(!fields.storeName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.supportEmail))return cors(NextResponse.json({error:'Valid store name and support email required'},{status:400}))
       fields.maintenance=body.maintenance===true
       const database=await getDb()
       await database.collection('store_settings').updateOne({key:'general'},{$set:{...fields,updatedAt:Date.now()}},{upsert:true})
