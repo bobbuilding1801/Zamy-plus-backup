@@ -579,16 +579,6 @@ async function handler(request, { params }) {
       const list = await listAllProducts()
       const dbReviews = database ? await database.collection('reviews').find({}).sort({ createdAt: -1 }).toArray().catch(() => []) : []
       const items = dbReviews.map(r => { const { _id, ...rest } = r; return rest })
-      // If DB is empty, expose seed reviews so admin has something to see
-      if (!items.length) {
-        list.slice(0,5).forEach((p,i) => items.push({
-          id: 'RV-'+p.id, productId: p.id, product: p.name, image: p.images?.[0],
-          name: ['Rahul K.','Priya S.','Vikas P.','Neha J.','Karan D.'][i%5], rating: (i%2===0)?5:4,
-          title: ['Loved it','Great','Awesome','Solid','Perfect'][i%5],
-          body: 'Very happy with the purchase. Delivery was quick and the product is top-notch.',
-          status: 'approved', createdAt: Date.now() - i*86400000,
-        }))
-      }
       return cors(NextResponse.json({ items }))
     }
     if (route.startsWith('/admin/reviews/') && method === 'PUT') {
