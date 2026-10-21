@@ -57,7 +57,7 @@ function Inner() {
     j('/api/admin/customers').then(d => setCustomers(d.items || []))
     j('/api/admin/coupons').then(d => setCoupons(d.items || []))
     j('/api/admin/reviews').then(d => setReviews(d.items || []))
-    fetch('/api/products?limit=30').then(r => r.json()).then(d => setProducts(d.items || []))
+    j('/api/admin/products').then(d => setProducts(d.items || []))
   }, [gate.loading, gate.user])
 
   if (gate.loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Verifying access…</div>
@@ -185,7 +185,26 @@ function Inner() {
     if (tab === 'shipping') return <Placeholder t="Shipping & Taxes" d="Configure shipping zones, rates, and tax rules (GST slabs) per category." />
     if (tab === 'returns') return <AdminReturns token={gate.user?.token} />
     if (tab === 'tickets') return <AdminTickets token={gate.user?.token} />
-    if (tab === 'inventory') return <Placeholder t="Inventory" d="Track stock levels across warehouses, low-stock alerts, and reorder suggestions." />
+    if (tab === 'inventory') return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-black">Inventory</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <KPI label="Products" value={products.length} Icon={Boxes} />
+          <KPI label="Low stock (1–5)" value={products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5).length} Icon={Package} />
+          <KPI label="Out of stock" value={products.filter(p => Number(p.stock) <= 0).length} Icon={ShoppingBag} />
+        </div>
+        <div className="rounded-2xl border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-secondary/50"><tr><th className="p-3 text-left">Product</th><th className="p-3 text-left">SKU</th><th className="p-3 text-right">Stock</th><th className="p-3 text-left">Status</th></tr></thead>
+            <tbody>{products.map(p => <tr key={p.id} className="border-t">
+              <td className="p-3 font-medium">{p.name}</td><td className="p-3">{p.sku || p.id}</td><td className="p-3 text-right">{p.stock ?? 0}</td>
+              <td className="p-3"><Badge variant={Number(p.stock) <= 0 ? 'destructive' : 'secondary'}>{Number(p.stock) <= 0 ? 'Out of stock' : Number(p.stock) <= 5 ? 'Low stock' : 'In stock'}</Badge></td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        <p className="text-sm text-muted-foreground">To change stock quantities, use the Products tab.</p>
+      </div>
+    )
     if (tab === 'users') return <Placeholder t="User Management" d="Admins, moderators, sellers, staff — assign roles & permissions." />
     if (tab === 'cms') return <Placeholder t="CMS Pages" d="Edit About, Contact, Legal, and static pages inline." />
     if (tab === 'emails') return <Placeholder t="Email Templates" d="Order confirmation, shipping, delivery, refund emails with variable placeholders." />
