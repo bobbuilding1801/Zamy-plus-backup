@@ -13,6 +13,7 @@ import { useAuthGate, getAuth } from '@/lib/auth'
 import AuthBar from '@/components/site/AuthBar'
 import ProductManager from '@/components/admin/ProductManager'
 import CategoryManager from '@/components/admin/CategoryManager'
+import ShippingManager from '@/components/admin/ShippingManager'
 import { AdminOrdersTable, AdminCoupons, AdminReviews, AdminReports, AdminReturns, AdminTickets } from '@/components/admin/AdminModules'
 
 const NAV = [
@@ -215,43 +216,7 @@ function Inner() {
       </div>
     )
     if (tab === 'reports') return <AdminReports />
-    if (tab === 'shipping') return <Placeholder t="Shipping & Taxes" d="Configure shipping zones, rates, and tax rules (GST slabs) per category." />
-    if (tab === 'returns') return <AdminReturns token={gate.user?.token} />
-    if (tab === 'tickets') return <AdminTickets token={gate.user?.token} />
-    if (tab === 'inventory') return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-black">Inventory</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <KPI label="Products" value={products.length} Icon={Boxes} />
-          <KPI label="Low stock (1–5)" value={products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5).length} Icon={Package} />
-          <KPI label="Out of stock" value={products.filter(p => Number(p.stock) <= 0).length} Icon={ShoppingBag} />
-        </div>
-        <div className="rounded-2xl border overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-secondary/50"><tr><th className="p-3 text-left">Product</th><th className="p-3 text-left">SKU</th><th className="p-3 text-right">Stock</th><th className="p-3 text-left">Status</th></tr></thead>
-            <tbody>{products.map(p => <tr key={p.id} className="border-t">
-              <td className="p-3 font-medium">{p.name}</td><td className="p-3">{p.sku || p.id}</td><td className="p-3 text-right">{p.stock ?? 0}</td>
-              <td className="p-3"><Badge variant={Number(p.stock) <= 0 ? 'destructive' : 'secondary'}>{Number(p.stock) <= 0 ? 'Out of stock' : Number(p.stock) <= 5 ? 'Low stock' : 'In stock'}</Badge></td>
-            </tr>)}</tbody>
-          </table>
-        </div>
-        <p className="text-sm text-muted-foreground">To change stock quantities, use the Products tab.</p>
-      </div>
-    )
-    if (tab === 'users') return <Placeholder t="User Management" d="Admins, moderators, sellers, staff — assign roles & permissions." />
-    if (tab === 'cms') return <Placeholder t="CMS Pages" d="Edit About, Contact, Legal, and static pages inline." />
-    if (tab === 'emails') return <Placeholder t="Email Templates" d="Order confirmation, shipping, delivery, refund emails with variable placeholders." />
-    if (tab === 'categories') return <CategoryManager />
-    if (tab === 'settings') return <Placeholder t="Settings" d="Store name, contact, currency, payment providers, integrations." />
-    return null
-  }
-
-  return (
-    <div className="grid grid-cols-12 min-h-screen">
-      <aside className="col-span-12 md:col-span-3 lg:col-span-2 border-r bg-sidebar text-sidebar-foreground p-3 md:min-h-screen">
-        <div className="flex items-center gap-2 p-2 mb-2"><Logo size={32} /><div className="font-black tracking-widest text-sm">ZAMY ADMIN</div></div>
-        <nav className="flex md:flex-col gap-1 overflow-x-auto no-scrollbar">
-          {NAV.filter(n => allowedTabs.includes(n.k)).map(n => { const I = n.i; return (
+    if (tab === 'shipping') return <ShippingManager />; return (
             <Link key={n.k} href={`/admin?tab=${n.k}`} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${tab===n.k?'bg-primary text-primary-foreground':'hover:bg-secondary'}`}>
               <I size={16} /> <span>{n.t}</span>
             </Link>
