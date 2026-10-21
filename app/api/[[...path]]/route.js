@@ -9,6 +9,7 @@ import {
 } from '@/lib/products'
 import { chatCompletion } from '@/lib/llm'
 import { sendOtpEmail, sendOrderCustomerEmail, sendOrderAdminEmail, buildItemsHtml } from '@/lib/email'
+import { EMAIL_DEFAULTS, sendOrderEventEmail } from '@/lib/email-templates'
 
 export const runtime = 'nodejs'
 
@@ -530,6 +531,21 @@ async function handler(request, { params }) {
     if (route.startsWith('/seller/')) {
       if (!requireAuth(request, 'seller')) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
     }
+    if (route === '/admin/email-templates' && method === 'GET') {
+      const database = await getDb()
+      const saved = await database.collection('email_templates').find({}).project({_id:0}).toArray()
+      return cors(NextResponse.json({items:Object.entries(EMAIL_DEFAULTS).map(([key,value])=>({key,...value,...(saved.find(t=>t.key===key)||{})}))}))
+    }
+    if (route === '/admin/email-templates' && method === 'PUT') {
+      const body = await request.json()
+      const key = String(body.key||'')
+      if (!EMAIL_DEFAULTS[key]) return cors(NextResponse.json({error:'Invalid template'}, {status:400}))
+      const subject=String(body.subject||'').trim(), text=String(body.body||'').trim()
+      if (!subject || !text || subject.length>300 || text.length>10000) return cors(NextResponse.json({error:'Invalid subject or body'}, {status:400}))
+      const database=await getDb()
+      await database.collection('email_templates').updateOne({key},{$set:{key,subject,body:text,updatedAt:Date.now()}},{upsert:true})
+      return cors(NextResponse.json({ok:true}))
+    }
     if (route === '/cms' && method === 'GET') {
       const database = await getDb()
       const pages = await database.collection('cms_pages').find({}).project({ _id:0 }).toArray()
@@ -696,8 +712,12 @@ async function handler(request, { params }) {
       const status = String(body.status || 'confirmed')
       const allowed = ['confirmed','packed','shipped','out','delivered','cancelled']
       if (!allowed.includes(status)) return cors(NextResponse.json({ ok:false, error:'Invalid status' }, { status: 400 }))
+      const previous = await database.collection('orders').findOne({ id })
+      if (!previous) return cors(NextResponse.json({ ok:false, error:'Order not found' }, { status:404 }))
       const result = await database.collection('orders').updateOne({ id }, { $set: { status, updatedAt: Date.now() } })
-      if (!result.matchedCount) return cors(NextResponse.json({ ok:false, error:'Order not found' }, { status:404 }))
+      if (result.modifiedCount && previous.status !== status && ['shipped','delivered','cancelled'].includes(status)) {
+        try { await sendOrderEventEmail(database,status,{...previous,status}) } catch(e) { console.error('Order status email failed',e) }
+      }
       return cors(NextResponse.json({ ok:true }))
     }
 
@@ -718,6 +738,7 @@ async function handler(request, { params }) {
       if (!allowed.includes(status)) return cors(NextResponse.json({ ok:false, error:'Invalid status' }, { status: 400 }))
       const admin = requireAuth(request, 'admin')
       const note = String(body.note || `Status updated to ${status}`).slice(0, 300)
+      const priorReturn = await database.collection('returns').findOne({id})
       await database.collection('returns').updateOne(
         { id },
         {
@@ -725,6 +746,12 @@ async function handler(request, { params }) {
           $push: { history: { at: Date.now(), by: admin?.email || 'admin', note } },
         },
       )
+      if (priorReturn && priorReturn.status !== 'refunded' && status === 'refunded') {
+        try {
+          const order = await database.collection('orders').findOne({id:priorReturn.orderId})
+          if(order) await sendOrderEventEmail(database,'refunded',order)
+        } catch(e) { console.error('Refund email failed',e) }
+      }
       return cors(NextResponse.json({ ok:true }))
     }
 
