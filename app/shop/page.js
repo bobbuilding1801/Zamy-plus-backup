@@ -139,7 +139,7 @@ function ShopInner() {
       </div>
       <div className="grid grid-cols-12 gap-6">
         <aside className="hidden lg:block col-span-3 sticky top-28 h-fit rounded-2xl border p-5 bg-card">
-          <Filters filters={filters} setFilters={setFilters} />
+          <Filters filters={filters} setFilters={setFilters} categories={categories} />
         </aside>
         <div className="col-span-12 lg:col-span-9">
           {loading ? (
