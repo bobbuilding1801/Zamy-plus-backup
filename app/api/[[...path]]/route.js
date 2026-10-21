@@ -450,7 +450,7 @@ async function handler(request, { params }) {
           product: p ? { id: p.id, name: p.name, price: p.price, images: p.images, brand: p.brand, category: p.category, subcategory: p.subcategory } : null,
         })
       }
-      const order = { id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', ...body, items: enrichedItems }
+      const order = { ...body, id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', items: enrichedItems }
       try { const database = await getDb(); await database.collection('orders').insertOne({ ...order }) } catch {}
 
       // Fire and forget emails (customer + admin)
@@ -499,7 +499,14 @@ async function handler(request, { params }) {
     if (route === '/admin/orders' && method === 'GET') {
       const database = await getDb().catch(() => null)
       if (!database) return cors(NextResponse.json({ items: [] }))
-      const raw = await database.collection('orders').find({}).sort({ createdAt: -1 }).limit(200).toArray().catch(() => [])
+      const raw = await database.collection('orders').find({}).sort({ createdAt: -1 }).limit(200).toArray()
+      // Repair legacy orders with missing IDs before displaying them in the admin panel.
+      for (const order of raw) {
+        if (typeof order.id === 'string' && order.id.trim()) continue
+        const newId = uuidv4().slice(0, 8).toUpperCase()
+        await database.collection('orders').updateOne({ _id: order._id, $or: [{ id: { $exists: false } }, { id: null }, { id: '' }] }, { $set: { id: newId } })
+        order.id = newId
+      }
       const items = raw.map(o => {
         const first = (o.items || [])[0]
         return {
