@@ -170,6 +170,15 @@ async function handler(request, { params }) {
       const cfg = role === 'seller'
         ? { emails: (process.env.SELLER_EMAILS || 'seller@zamy.market').toLowerCase().split(',').map(s=>s.trim()), password: process.env.SELLER_PASSWORD || 'zamy2025' }
         : { emails: (process.env.ADMIN_EMAILS  || 'admin@zamy.market' ).toLowerCase().split(',').map(s=>s.trim()), password: process.env.ADMIN_PASSWORD  || 'zamy2025' }
+      if (!['admin','seller','product','support'].includes(role)) return cors(NextResponse.json({ ok:false, error:'Invalid role' }, { status:400 }))
+      if (role === 'product' || role === 'support') {
+        const prefix = role === 'product' ? 'PRODUCT' : 'SUPPORT'
+        const emails = (process.env[`${prefix}_EMAILS`] || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean)
+        const passwordConfigured = process.env[`${prefix}_PASSWORD`]
+        const em = String(email).toLowerCase().trim()
+        if (!passwordConfigured || !emails.includes(em) || String(password) !== passwordConfigured) return cors(NextResponse.json({ ok:false, error:'Invalid credentials or role not configured' }, { status:401 }))
+        return cors(NextResponse.json({ ok:true, email:em, role, token:makeToken(em,role) }))
+      }
       const em = String(email).toLowerCase().trim()
       if (!cfg.emails.includes(em)) return cors(NextResponse.json({ ok:false, error: 'Email not authorized for this role.' }, { status: 401 }))
       if (String(password) !== cfg.password) return cors(NextResponse.json({ ok:false, error: 'Incorrect password.' }, { status: 401 }))
@@ -486,7 +495,13 @@ async function handler(request, { params }) {
 
     // Admin (auth required)
     if (route.startsWith('/admin/')) {
-      if (!requireAuth(request, 'admin')) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+      const user = requireAuth(request)
+      if (!user || !['admin','product','support'].includes(user.role)) return cors(NextResponse.json({ error:'Unauthorized' }, { status:401 }))
+      if (user.role !== 'admin') {
+        const productRoute = /^\/admin\/products(?:\/|$)/.test(route)
+        const supportRoute = /^\/admin\/(tickets|returns)(?:\/|$)/.test(route)
+        if (!((user.role === 'product' && productRoute) || (user.role === 'support' && supportRoute))) return cors(NextResponse.json({ error:'Forbidden for this role' }, { status:403 }))
+      }
     }
     if (route.startsWith('/seller/')) {
       if (!requireAuth(request, 'seller')) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
