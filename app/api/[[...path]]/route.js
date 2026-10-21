@@ -351,7 +351,25 @@ async function handler(request, { params }) {
       return cors(NextResponse.json({ ok:true }))
     }
 
-    if (route === '/categories' && method === 'GET') return cors(NextResponse.json({ items: CATEGORIES }))
+    if (route === '/categories' && method === 'GET') {
+      const database = await getDb().catch(() => null)
+      const saved = database ? await database.collection('store_settings').findOne({ key:'categories' }) : null
+      return cors(NextResponse.json({ items: saved?.items || CATEGORIES }))
+    }
+    if (route === '/admin/categories' && method === 'GET') {
+      const database = await getDb()
+      const saved = await database.collection('store_settings').findOne({ key:'categories' })
+      return cors(NextResponse.json({ items: saved?.items || CATEGORIES }))
+    }
+    if (route === '/admin/categories' && method === 'PUT') {
+      const body = await request.json()
+      if (!Array.isArray(body.items) || body.items.length > 100) return cors(NextResponse.json({ error:'Invalid categories' }, { status:400 }))
+      const items = body.items.map(c => ({ slug:String(c.slug || '').trim().toLowerCase(), name:String(c.name || '').trim(), icon:String(c.icon || 'Layers').trim(), subs:Array.isArray(c.subs) ? c.subs.map(x => String(x).trim()).filter(Boolean).slice(0,100) : [] }))
+      if (items.some(c => !/^[a-z0-9-]{1,80}$/.test(c.slug) || !c.name || c.name.length > 100) || new Set(items.map(c => c.slug)).size !== items.length) return cors(NextResponse.json({ error:'Invalid or duplicate category names/slugs' }, { status:400 }))
+      const database = await getDb()
+      await database.collection('store_settings').updateOne({ key:'categories' }, { $set:{ items, updatedAt:Date.now() } }, { upsert:true })
+      return cors(NextResponse.json({ ok:true, items }))
+    }
     if (route === '/brands' && method === 'GET') return cors(NextResponse.json({ items: BRANDS }))
 
     // Batched homepage sections in a single response (huge perf win)
