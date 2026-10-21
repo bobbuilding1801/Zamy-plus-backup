@@ -25,6 +25,8 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const boxRef = useRef(null)
   const { theme, setTheme } = useTheme()
+  const [storeSettings,setStoreSettings] = useState(null)
+  useEffect(()=>{fetch('/api/store-settings').then(r=>r.json()).then(setStoreSettings).catch(()=>{})},[])
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
@@ -61,7 +63,7 @@ export default function Header() {
             <span>|</span>
             <span>24×7 Customer Support</span>
           </div>
-          <div className="whitespace-nowrap font-semibold text-primary">⚡ WELCOME10 — 10% off your first order · Free delivery over ₹999 · EMI available</div>
+          <div className="whitespace-nowrap font-semibold text-primary">{storeSettings?.announcement ?? '₹500 flat delivery across India'}</div>
           <div className="hidden md:flex gap-4 text-white/70">
             <Link href="/account" className="hover:text-primary">Track Order</Link>
             <Link href="/help" className="hover:text-primary">Help</Link>
