@@ -36,7 +36,9 @@ function CheckoutInner() {
   const [step, setStep] = useState(0)
   const [addr, setAddr] = useState({ name:'', mobile:'', email:'', line1:'', city:'', state:'', pin:'', country:'India' })
   const [billing, setBilling] = useState({ same: true })
-  const [ship, setShip] = useState('standard')
+  const [ship] = useState('standard')
+  const [shippingSettings,setShippingSettings] = useState({ flatRate:500, deliveryDays:'3–7 business days' })
+  useEffect(() => { fetch('/api/shipping-settings').then(r=>r.json()).then(d=>setShippingSettings(d)).catch(()=>{}) },[])
   const [pay, setPay] = useState('upi')
   const [placing, setPlacing] = useState(false)
 
@@ -54,8 +56,7 @@ function CheckoutInner() {
 
   const active = cart.filter(c => !c.savedForLater)
   const subtotal = active.reduce((s,c) => s + (products[c.id]?.price || 0) * c.qty, 0)
-  const shipFees = { standard: subtotal > 999 ? 0 : 79, express: 149, sameday: 299 }
-  const shipping = shipFees[ship]
+  const shipping = shippingSettings.flatRate
   const tax = Math.round(subtotal * 0.05)
   const total = subtotal + shipping + tax
 
@@ -123,22 +124,7 @@ function CheckoutInner() {
             {step === 1 && (
               <>
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Truck size={18} /> Delivery Options</h2>
-                <RadioGroup value={ship} onValueChange={setShip} className="space-y-3">
-                  {[
-                    { v:'standard', t:'Standard Delivery', d:'2–4 business days', f: shipFees.standard },
-                    { v:'express', t:'Express Delivery', d:'1–2 business days', f: shipFees.express },
-                    { v:'sameday', t:'Same Day Delivery', d:'Order before 12 PM', f: shipFees.sameday },
-                  ].map(o => (
-                    <label key={o.v} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer ${ship===o.v?'border-primary bg-primary/5':''}`}>
-                      <RadioGroupItem value={o.v} id={o.v} />
-                      <div className="flex-1">
-                        <div className="font-semibold">{o.t}</div>
-                        <div className="text-xs text-muted-foreground">{o.d}</div>
-                      </div>
-                      <div className="font-bold">{o.f === 0 ? 'Free' : formatINR(o.f)}</div>
-                    </label>
-                  ))}
-                </RadioGroup>
+                <div className="flex items-center justify-between rounded-xl border border-primary bg-primary/5 p-4"><div><div className="font-semibold">Standard Delivery — All India</div><div className="text-xs text-muted-foreground">{shippingSettings.deliveryDays}</div></div><div className="font-bold">{formatINR(shipping)}</div></div>
               </>
             )}
             {step === 2 && (
