@@ -562,6 +562,21 @@ async function handler(request, { params }) {
       await database.collection('cms_pages').updateOne({ key }, { $set:{ key,title,content,updatedAt:Date.now() } }, { upsert:true })
       return cors(NextResponse.json({ ok:true }))
     }
+    if (route === '/store-settings' && method === 'GET') {
+      const database = await getDb()
+      const saved = await database.collection('store_settings').findOne({key:'general'})
+      return cors(NextResponse.json({storeName:saved?.storeName??'ZAMY',supportEmail:saved?.supportEmail??'support@zamy.market',phone:saved?.phone??'',address:saved?.address??'',announcement:saved?.announcement??'₹500 flat delivery across India',maintenance:saved?.maintenance??false}))
+    }
+    if (route === '/admin/store-settings' && method === 'PUT') {
+      const body=await request.json()
+      const fields={}
+      for(const k of ['storeName','supportEmail','phone','address','announcement']) fields[k]=String(body[k]??'').trim().slice(0,k==='announcement'?200:300)
+      if(!fields.storeName || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(fields.supportEmail))return cors(NextResponse.json({error:'Valid store name and support email required'},{status:400}))
+      fields.maintenance=body.maintenance===true
+      const database=await getDb()
+      await database.collection('store_settings').updateOne({key:'general'},{$set:{...fields,updatedAt:Date.now()}},{upsert:true})
+      return cors(NextResponse.json({ok:true}))
+    }
     if (route === '/shipping-settings' && method === 'GET') {
       const database = await getDb()
       const saved = await database.collection('store_settings').findOne({ key:'shipping' })
