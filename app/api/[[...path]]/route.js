@@ -433,7 +433,7 @@ async function handler(request, { params }) {
     if (route === '/orders' && method === 'POST') {
       const body = await request.json()
       const wantedItems = (body.items || []).map(i => ({ id: String(i.id || ''), qty: Number(i.qty) }))
-      if (!wantedItems.length || wantedItems.some(i => !i.id || !Number.isSafeInteger(i.qty) || i.qty < 1 || i.qty > 100)) return cors(NextResponse.json({ ok:false, error:'Invalid order items' }, { status:400 }))
+      if (!wantedItems.length || new Set(wantedItems.map(i => i.id)).size !== wantedItems.length || wantedItems.some(i => !i.id || !Number.isSafeInteger(i.qty) || i.qty < 1 || i.qty > 100)) return cors(NextResponse.json({ ok:false, error:'Invalid order items' }, { status:400 }))
       const database = await getDb().catch(() => null)
       if (!database) return cors(NextResponse.json({ ok:false, error:'Database unavailable' }, { status:503 }))
       for (const it of wantedItems) {
