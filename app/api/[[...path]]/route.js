@@ -477,7 +477,13 @@ async function handler(request, { params }) {
           product: p ? { id: p.id, name: p.name, price: p.price, images: p.images, brand: p.brand, category: p.category, subcategory: p.subcategory } : null,
         })
       }
-      const order = { ...body, id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', items: enrichedItems }
+      const shippingDb = await getDb()
+      const shippingSettings = await shippingDb.collection('store_settings').findOne({ key:'shipping' })
+      const shippingFee = shippingSettings?.flatRate ?? 500
+      const subtotal = enrichedItems.reduce((sum,it) => sum + (it.product?.price || 0) * it.qty, 0)
+      const tax = Math.round(subtotal * 0.05)
+      const total = subtotal + shippingFee + tax
+      const order = { ...body, total, shipping:'standard', shippingFee, tax, subtotal, id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', items: enrichedItems }
       try { const database = await getDb(); await database.collection('orders').insertOne({ ...order }) } catch {}
 
       // Fire and forget emails (customer + admin)
@@ -523,6 +529,20 @@ async function handler(request, { params }) {
     }
     if (route.startsWith('/seller/')) {
       if (!requireAuth(request, 'seller')) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+    }
+    if (route === '/shipping-settings' && method === 'GET') {
+      const database = await getDb()
+      const saved = await database.collection('store_settings').findOne({ key:'shipping' })
+      return cors(NextResponse.json({ flatRate: saved?.flatRate ?? 500, deliveryDays: saved?.deliveryDays ?? '3–7 business days' }))
+    }
+    if (route === '/admin/shipping' && method === 'PUT') {
+      const body = await request.json()
+      const flatRate = Number(body.flatRate)
+      if (!Number.isFinite(flatRate) || flatRate < 0 || flatRate > 100000) return cors(NextResponse.json({ error:'Invalid shipping rate' }, { status:400 }))
+      const deliveryDays = String(body.deliveryDays || '3–7 business days').slice(0,80)
+      const database = await getDb()
+      await database.collection('store_settings').updateOne({ key:'shipping' }, { $set:{ flatRate, deliveryDays, updatedAt:Date.now() } }, { upsert:true })
+      return cors(NextResponse.json({ ok:true, flatRate, deliveryDays }))
     }
     if (route === '/admin/analytics' && method === 'GET') {
       const database = await getDb().catch(() => null)
