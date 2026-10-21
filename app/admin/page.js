@@ -16,6 +16,7 @@ import CategoryManager from '@/components/admin/CategoryManager'
 import ShippingManager from '@/components/admin/ShippingManager'
 import CmsManager from '@/components/admin/CmsManager'
 import EmailTemplatesManager from '@/components/admin/EmailTemplatesManager'
+import StoreSettingsManager from '@/components/admin/StoreSettingsManager'
 import { AdminOrdersTable, AdminCoupons, AdminReviews, AdminReports, AdminReturns, AdminTickets } from '@/components/admin/AdminModules'
 
 const NAV = [
@@ -245,7 +246,7 @@ function Inner() {
     if (tab === 'cms') return <CmsManager />
     if (tab === 'emails') return <EmailTemplatesManager />
     if (tab === 'categories') return <CategoryManager />
-    if (tab === 'settings') return <Placeholder t="Settings" d="Store name, contact, currency, payment providers, integrations." />
+    if (tab === 'settings') return <StoreSettingsManager />
     return null
   }
 
