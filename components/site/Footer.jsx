@@ -1,3 +1,5 @@
+'use client'
+import { useEffect,useState } from 'react'
 import Link from 'next/link'
 import Logo from './Logo'
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react'
@@ -5,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 export default function Footer() {
+  const [settings,setSettings]=useState(null)
+  useEffect(()=>{fetch('/api/store-settings').then(r=>r.json()).then(setSettings).catch(()=>{})},[])
   return (
     <footer className="mt-16 bg-black text-white">
       <div className="container px-4 md:px-6 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
@@ -17,9 +21,9 @@ export default function Footer() {
             ))}
           </div>
           <div className="mt-4 space-y-1.5 text-sm text-white/70">
-            <div className="flex items-center gap-2"><Mail size={14} /> support@zamy.market</div>
-            <div className="flex items-center gap-2"><Phone size={14} /> +91 1800-000-000</div>
-            <div className="flex items-center gap-2"><MapPin size={14} /> Bengaluru, India</div>
+            <div className="flex items-center gap-2"><Mail size={14} /> {settings?.supportEmail || 'support@zamy.market'}</div>
+            <div className="flex items-center gap-2"><Phone size={14} /> {settings?.phone || 'Contact details available on request'}</div>
+            <div className="flex items-center gap-2"><MapPin size={14} /> {settings?.address || 'India'}</div>
           </div>
         </div>
         <div>
