@@ -5,9 +5,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function Inner() {
+  const [cms,setCms] = useState(null)
+  useEffect(()=>{fetch('/api/cms').then(r=>r.json()).then(d=>setCms((d.items||[]).find(p=>p.key==='contact')||null)).catch(()=>{})},[])
   const [form, setForm] = useState({ name:'', email:'', subject:'', message:'' })
   const submit = async (e) => {
     e.preventDefault()
@@ -18,8 +20,8 @@ function Inner() {
   return (
     <div className="container px-4 md:px-6 py-12 grid md:grid-cols-2 gap-10">
       <div>
-        <h1 className="text-4xl font-black">Contact us</h1>
-        <p className="text-muted-foreground mt-2">We’d love to hear from you. Reach out and we’ll respond within 24 hours.</p>
+        <h1 className="text-4xl font-black">{cms?.title || 'Contact us'}</h1>
+        <p className="text-muted-foreground mt-2">{cms?.content || 'We’d love to hear from you. Reach out and we’ll respond within 24 hours.'}</p>
         <div className="mt-6 space-y-3 text-sm">
           <div className="flex items-center gap-2"><Mail size={16} className="text-primary" /> support@zamy.market</div>
           <div className="flex items-center gap-2"><Phone size={16} className="text-primary" /> +91 1800-000-000</div>
