@@ -33,7 +33,7 @@ export default function Testimonials() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-10">
         {[
           {t:'Genuine Products', d:'100% authentic with warranty'},
-          {t:'Free Shipping', d:'On orders above ₹999'},
+          {t:'Flat-rate Delivery', d:'₹500 per order across India'},
           {t:'Easy Returns', d:'7-day no-questions-asked'},
           {t:'Secure Payments', d:'PCI DSS certified checkout'},
         ].map((x,i) => (
