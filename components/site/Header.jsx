@@ -101,7 +101,7 @@ export default function Header() {
               <img
                 src="/WhatsApp%20Image%202026-10-21%20at%2010.25.14%20PM.jpeg"
                 alt="SUNBLISS logo"
-                className="h-11 w-24 rounded-md bg-white object-contain"
+                className="h-16 w-36 lg:h-18 lg:w-44 rounded-md bg-white object-contain"
               />
             </div>
 
