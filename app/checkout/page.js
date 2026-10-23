@@ -34,7 +34,7 @@ function CheckoutInner() {
   const { user, setModalOpen } = useCustomer()
   const [products, setProducts] = useState({})
   const [step, setStep] = useState(0)
-  const [addr, setAddr] = useState({ name:'', mobile:'', email:'', line1:'', city:'', state:'', pin:'', country:'India' })
+  const [addr, setAddr] = useState({ name:'', mobile:'', email:'', line1:'', city:'', state:'', pin:'', country:'United States' })
   const [billing, setBilling] = useState({ same: true })
   const [ship] = useState('standard')
   const [shippingSettings,setShippingSettings] = useState({ flatRate:500, deliveryDays:'3–7 business days' })
@@ -70,7 +70,7 @@ function CheckoutInner() {
     try {
       const order = { total, items: active.map(c => ({ ...c, product: products[c.id] })), address: addr, shipping: ship, payment: pay, id: '' }
       // Payments: real Razorpay if key present, else mock
-      const payRes = await fetch('/api/payments/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: total, currency: 'INR', method: pay === 'card' ? 'razorpay' : pay })})
+      const payRes = await fetch('/api/payments/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount: total, currency: 'USD', method: pay === 'card' ? 'razorpay' : pay })})
       const payData = await payRes.json()
       if (!payData.ok) throw new Error(payData.error || 'Payment init failed')
       if (!payData.mocked && payData.provider === 'razorpay') {
@@ -124,7 +124,7 @@ function CheckoutInner() {
             {step === 1 && (
               <>
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Truck size={18} /> Delivery Options</h2>
-                <div className="flex items-center justify-between rounded-xl border border-primary bg-primary/5 p-4"><div><div className="font-semibold">Standard Delivery — All India</div><div className="text-xs text-muted-foreground">{shippingSettings.deliveryDays}</div></div><div className="font-bold">{formatINR(shipping)}</div></div>
+                <div className="flex items-center justify-between rounded-xl border border-primary bg-primary/5 p-4"><div><div className="font-semibold">Standard Delivery — United States</div><div className="text-xs text-muted-foreground">{shippingSettings.deliveryDays}</div></div><div className="font-bold">{formatINR(shipping)}</div></div>
               </>
             )}
             {step === 2 && (
