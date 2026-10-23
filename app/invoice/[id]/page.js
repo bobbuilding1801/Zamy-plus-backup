@@ -39,7 +39,7 @@ export default function InvoicePage() {
             <div className="flex items-center gap-3">
               <img src="/WhatsApp%20Image%202026-10-21%20at%2010.25.14%20PM.jpeg" className="h-16 w-28 bg-white object-contain" alt="SUNBLISS" />
               <div>
-                <div className="font-black text-2xl tracking-widest">SUNBLISS</div>
+                <div className="font-black text-2xl tracking-widest">Sunbliss Inc</div>
                 <div className="text-xs text-neutral-500">Seller</div>
               </div>
             </div>
@@ -61,7 +61,10 @@ export default function InvoicePage() {
             </div>
             <div className="text-right">
               <div className="text-xs uppercase text-neutral-500 font-bold">Seller</div>
-              <div className="mt-1">SUNBLISS</div>
+              <div className="mt-1 font-semibold">Sunbliss Inc</div>
+              <div>608 S Crestwood Dr</div>
+              <div>Paris, TN 38242</div>
+              <div>United States</div>
               <div className="mt-3 text-xs uppercase text-neutral-500 font-bold">Payment</div>
               <div className="mt-1 uppercase">{order.payment || 'UPI'} · Paid</div>
             </div>
