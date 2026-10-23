@@ -484,7 +484,7 @@ async function handler(request, { params }) {
       const subtotal = enrichedItems.reduce((sum,it) => sum + (it.product?.price || 0) * it.qty, 0)
       const tax = Math.round(subtotal * 0.05)
       const total = subtotal + shippingFee + tax
-      const order = { ...body, total, shipping:'standard', shippingFee, tax, subtotal, id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', items: enrichedItems }
+      const order = { ...body, total, shipping:'standard', shippingFee, tax, subtotal, currency:'USD', id: uuidv4().slice(0,8).toUpperCase(), createdAt: Date.now(), status: 'confirmed', items: enrichedItems }
       try { const database = await getDb(); await database.collection('orders').insertOne({ ...order }) } catch {}
 
       // Fire and forget emails (customer + admin)
@@ -565,7 +565,7 @@ async function handler(request, { params }) {
     if (route === '/store-settings' && method === 'GET') {
       const database = await getDb()
       const saved = await database.collection('store_settings').findOne({key:'general'})
-      return cors(NextResponse.json({storeName:saved?.storeName??'ZAMY',supportEmail:saved?.supportEmail??'support@zamy.market',phone:saved?.phone??'',address:saved?.address??'',announcement:saved?.announcement??'₹500 flat delivery across India',maintenance:saved?.maintenance??false}))
+      return cors(NextResponse.json({storeName:saved?.storeName??'ZAMY',supportEmail:saved?.supportEmail??'support@zamy.market',phone:saved?.phone??'',address:saved?.address??'',announcement:saved?.announcement??'$500 flat delivery across India',maintenance:saved?.maintenance??false}))
     }
     if (route === '/admin/store-settings' && method === 'PUT') {
       const body=await request.json()
@@ -881,7 +881,7 @@ async function handler(request, { params }) {
       } catch (e) {
         const q = userMsg.toLowerCase()
         const guess = (await filterProductsAsync({ q: userMsg })).slice(0,2)
-        if (guess.length) reply = `Here are some great options: ${guess.map(g => `• ${g.name} (₹${g.price.toLocaleString()}) — /product/${g.id}`).join(' ')}. Anything specific you'd like to know?`
+        if (guess.length) reply = `Here are some great options: ${guess.map(g => `• ${g.name} ($${g.price.toLocaleString()}) — /product/${g.id}`).join(' ')}. Anything specific you'd like to know?`
         else if (q.includes('return')) reply = 'Yes! We offer 7-day easy returns from delivery. Go to Account › Orders and click Return.'
         else if (q.includes('deliv')) reply = 'Standard delivery is 2–4 business days. Express and same-day options are available at checkout.'
         else if (q.includes('payment')) reply = 'We accept UPI, cards, net banking, wallets, Razorpay, Stripe, PayPal and COD.'
@@ -906,7 +906,7 @@ async function handler(request, { params }) {
       if (!pool.length) pool = (await filterProductsAsync({ sort:'popular' }))
       const candidates = pool.slice(0, 12)
       try {
-        const list = candidates.map(p => `${p.id}: ${p.name} (${p.brand}, ${p.subcategory}, ₹${p.price})`).join('\n')
+        const list = candidates.map(p => `${p.id}: ${p.name} (${p.brand}, ${p.subcategory}, $${p.price})`).join('\n')
         const seedList = seeds.map(p => `${p.id}: ${p.name} (${p.brand})`).join('\n') || 'No specific history.'
         const msg = `You are a recommendation engine for ZAMY marketplace. Given the user's recently viewed/carted/wishlisted items and a candidate pool, pick 6 product IDs the user is most likely to buy next and briefly explain why in one sentence.\n\nUser history:\n${seedList}\n\nCandidate pool:\n${list}\n\nReturn ONLY JSON of the form: { "ids": ["0012","0034",...], "reason": "..." }`
         const raw = await chatCompletion({ messages:[{ role:'user', content: msg }], model:'gpt-4o-mini', max_tokens: 200 })
@@ -957,7 +957,7 @@ async function handler(request, { params }) {
     if (route === '/payments/create' && method === 'POST') {
       const body = await request.json()
       const amount = Math.round(Number(body.amount || 0))
-      const currency = body.currency || 'INR'
+      const currency = body.currency || 'USD'
       const method = body.method || 'razorpay'
       // If real keys present, integrate here.
       if (method === 'razorpay' && process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
