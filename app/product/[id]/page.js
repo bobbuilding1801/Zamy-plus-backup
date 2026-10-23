@@ -104,14 +104,14 @@ function ProductInner() {
             {p.mrp > p.price && <span className="text-lg text-muted-foreground line-through">{formatINR(p.mrp)}</span>}
             {p.discount > 0 && <span className="text-sm font-bold text-green-600">Save {formatINR(savings)} ({p.discount}%)</span>}
           </div>
-          <div className="text-xs text-muted-foreground mt-1">Inclusive of all taxes. EMI from ${formatINR(Math.round(p.price/12))}/mo.</div>
+          <div className="text-xs text-muted-foreground mt-1">Price shown in USD. Estimated monthly cost from {formatINR(Math.round(p.price/12))}/mo.</div>
 
           <div className="mt-5 space-y-3 rounded-2xl border p-4">
             <div className="flex items-center gap-2 text-sm">
               <Package size={16} className="text-primary" />
               {p.stock > 5 ? <span className="text-green-600 font-semibold">In Stock</span> : p.stock > 0 ? <span className="text-orange-500 font-semibold">Only {p.stock} left</span> : <span className="text-red-500 font-semibold">Out of Stock</span>}
             </div>
-            <div className="flex items-center gap-2 text-sm"><Truck size={16} className="text-primary" /> Free delivery by <b>{eta}</b></div>
+            <div className="flex items-center gap-2 text-sm"><Truck size={16} className="text-primary" /> Estimated delivery by <b>{eta}</b></div>
             <div className="flex items-center gap-2 text-sm"><ShieldCheck size={16} className="text-primary" /> 1 year manufacturer warranty</div>
             <div className="flex items-center gap-2 text-sm"><RotateCcw size={16} className="text-primary" /> 7-day easy returns</div>
             <div className="flex items-center gap-2 text-sm"><MapPin size={16} className="text-primary" />
@@ -145,9 +145,9 @@ function ProductInner() {
             <div className="font-bold mb-2">Offers</div>
             <ul className="text-sm space-y-2">
               <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> 10% off with WELCOME10 (first order)</li>
-              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> No-cost EMI from ${formatINR(Math.round(p.price/12))}/mo</li>
-              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> Cashback ${formatINR(Math.round(p.price*0.02))} on Zamy Card</li>
-              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> Exchange up to ${formatINR(Math.round(p.price*0.15))}</li>
+              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> No-cost EMI from {formatINR(Math.round(p.price/12))}/mo</li>
+              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> Cashback {formatINR(Math.round(p.price*0.02))} on Zamy Card</li>
+              <li className="flex gap-2"><Check size={16} className="text-primary shrink-0 mt-0.5" /> Exchange up to {formatINR(Math.round(p.price*0.15))}</li>
             </ul>
           </div>
         </div>
