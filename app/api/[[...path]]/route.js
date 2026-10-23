@@ -456,6 +456,8 @@ async function handler(request, { params }) {
     // Orders (with stock decrement + email confirmations)
     if (route === '/orders' && method === 'POST') {
       const body = await request.json()
+      if (!['United States', 'Canada', 'Mexico'].includes(body.address?.country)) return cors(NextResponse.json({ ok:false, error:'Shipping is available only in the United States, Canada, and Mexico' }, { status:400 }))
+      if (!['card'].includes(body.payment)) return cors(NextResponse.json({ ok:false, error:'This payment method is not supported yet' }, { status:400 }))
       const wantedItems = (body.items || []).map(i => ({ id: i.id, qty: i.qty || 1 }))
       for (const it of wantedItems) {
         const p = await findProductAsync(it.id)
@@ -884,7 +886,7 @@ async function handler(request, { params }) {
         if (guess.length) reply = `Here are some great options: ${guess.map(g => `• ${g.name} ($${g.price.toLocaleString()}) — /product/${g.id}`).join(' ')}. Anything specific you'd like to know?`
         else if (q.includes('return')) reply = 'Yes! We offer 7-day easy returns from delivery. Go to Account › Orders and click Return.'
         else if (q.includes('deliv')) reply = 'Standard delivery is 2–4 business days. Express and same-day options are available at checkout.'
-        else if (q.includes('payment')) reply = 'We accept UPI, cards, net banking, wallets, Razorpay, Stripe, PayPal and COD.'
+        else if (q.includes('payment')) reply = 'We currently list card payments, with ACH/Wire and SUNBLISS Credits planned. Payment processing is not yet verified for live orders.'
         else reply = 'I’m here to help with products, orders, delivery, returns and payments on ZAMY. What are you looking for today?'
       }
       return cors(NextResponse.json({ reply }))
