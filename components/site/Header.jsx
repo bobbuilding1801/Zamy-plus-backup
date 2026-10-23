@@ -96,8 +96,7 @@ export default function Header() {
 
           <Logo size={40} />
           <span className="hidden sm:inline font-black tracking-widest text-lg">ZAMY</span>
-          {pathname === '/' && (
-            <div className="hidden sm:flex shrink-0 items-center" aria-label="SUNBLISS">
+          <div className="hidden sm:flex shrink-0 items-center" aria-label="SUNBLISS">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/WhatsApp%20Image%202026-10-21%20at%2010.25.14%20PM.jpeg"
@@ -105,7 +104,6 @@ export default function Header() {
                 className="h-11 w-24 rounded-md bg-white object-contain"
               />
             </div>
-          )}
 
           {/* Category mega dropdown */}
           <Popover>
