@@ -103,8 +103,8 @@ export function AdminCoupons({ token }) {
           <DialogHeader><DialogTitle>New Coupon</DialogTitle></DialogHeader>
           <form onSubmit={save} className="space-y-3">
             <div><Label>Code</Label><Input value={form.code} onChange={e => setForm({...form, code: e.target.value.toUpperCase()})} placeholder="SUMMER25" required /></div>
-            <div><Label>Discount (e.g. 10%, ₹500, Free shipping)</Label><Input value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} required /></div>
-            <div className="grid grid-cols-2 gap-3"><div><Label>Min order (₹)</Label><Input type="number" value={form.min} onChange={e => setForm({...form, min: e.target.value})} /></div><div><Label>Cap</Label><Input value={form.cap} onChange={e => setForm({...form, cap: e.target.value})} placeholder="₹2000 or —" /></div></div>
+            <div><Label>Discount (e.g. 10%, $500, Free shipping)</Label><Input value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} required /></div>
+            <div className="grid grid-cols-2 gap-3"><div><Label>Min order ($)</Label><Input type="number" value={form.min} onChange={e => setForm({...form, min: e.target.value})} /></div><div><Label>Cap</Label><Input value={form.cap} onChange={e => setForm({...form, cap: e.target.value})} placeholder="$2000 or —" /></div></div>
             <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit">Create</Button></DialogFooter>
           </form>
         </DialogContent>
