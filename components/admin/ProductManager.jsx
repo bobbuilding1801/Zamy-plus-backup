@@ -190,11 +190,11 @@ export default function ProductManager({ token, onChanged }) {
                 <Input value={form.tags} onChange={e => setForm({...form, tags:e.target.value})} placeholder="bestseller, deal, new" />
               </div>
               <div>
-                <Label>Price (₹)</Label>
+                <Label>Price ($)</Label>
                 <Input type="number" value={form.price} onChange={e => setForm({...form, price:e.target.value})} required />
               </div>
               <div>
-                <Label>MRP (₹)</Label>
+                <Label>MRP ($)</Label>
                 <Input type="number" value={form.mrp} onChange={e => setForm({...form, mrp:e.target.value})} placeholder="Optional (defaults to price)" />
               </div>
               <div>
