@@ -39,7 +39,8 @@ function CheckoutInner() {
   const [ship] = useState('standard')
   const [shippingSettings,setShippingSettings] = useState({ flatRate:500, deliveryDays:'3–7 business days' })
   useEffect(() => { fetch('/api/shipping-settings').then(r=>r.json()).then(d=>setShippingSettings(d)).catch(()=>{}) },[])
-  const [pay, setPay] = useState('upi')
+  const [pay, setPay] = useState('card')
+  const allowedCountries = ['United States', 'Canada', 'Mexico']
   const [placing, setPlacing] = useState(false)
 
   useEffect(() => {
@@ -61,11 +62,13 @@ function CheckoutInner() {
   const total = subtotal + shipping + tax
 
   const canNext = () => {
-    if (step === 0) return addr.name && addr.mobile && addr.line1 && addr.city && addr.pin
+    if (step === 0) return addr.name && addr.mobile && addr.line1 && addr.city && addr.pin && allowedCountries.includes(addr.country)
     return true
   }
 
   const submit = async () => {
+    if (!allowedCountries.includes(addr.country)) { toast.error('Shipping is limited to the United States, Canada, and Mexico'); return }
+    if (pay !== 'card') { toast.error('This payment method is not available yet'); return }
     setPlacing(true)
     try {
       const order = { total, items: active.map(c => ({ ...c, product: products[c.id] })), address: addr, shipping: ship, payment: pay, id: '' }
@@ -110,8 +113,8 @@ function CheckoutInner() {
                   <Input placeholder="Address line*" className="sm:col-span-2" value={addr.line1} onChange={e => setAddr({...addr, line1:e.target.value})} />
                   <Input placeholder="City*" value={addr.city} onChange={e => setAddr({...addr, city:e.target.value})} />
                   <Input placeholder="State" value={addr.state} onChange={e => setAddr({...addr, state:e.target.value})} />
-                  <Input placeholder="PIN code*" value={addr.pin} onChange={e => setAddr({...addr, pin:e.target.value})} />
-                  <Input placeholder="Country" value={addr.country} onChange={e => setAddr({...addr, country:e.target.value})} />
+                  <Input placeholder="ZIP / Postal code*" value={addr.pin} onChange={e => setAddr({...addr, pin:e.target.value})} />
+                  <select aria-label="Shipping country" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={addr.country} onChange={e => setAddr({...addr, country:e.target.value})}>{allowedCountries.map(country => <option key={country} value={country}>{country}</option>)}</select>
                 </div>
                 <div className="mt-4 text-sm">
                   <label className="inline-flex items-center gap-2 cursor-pointer">
@@ -124,7 +127,7 @@ function CheckoutInner() {
             {step === 1 && (
               <>
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Truck size={18} /> Delivery Options</h2>
-                <div className="flex items-center justify-between rounded-xl border border-primary bg-primary/5 p-4"><div><div className="font-semibold">Standard Delivery — United States</div><div className="text-xs text-muted-foreground">{shippingSettings.deliveryDays}</div></div><div className="font-bold">{formatINR(shipping)}</div></div>
+                <div className="flex items-center justify-between rounded-xl border border-primary bg-primary/5 p-4"><div><div className="font-semibold">Standard Delivery — North America</div><div className="text-xs text-muted-foreground">{shippingSettings.deliveryDays}</div></div><div className="font-bold">{formatINR(shipping)}</div></div>
               </>
             )}
             {step === 2 && (
@@ -132,19 +135,17 @@ function CheckoutInner() {
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><CreditCard size={18} /> Payment Method</h2>
                 <RadioGroup value={pay} onValueChange={setPay} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    { v:'upi', t:'UPI', d:'Google Pay, PhonePe, Paytm' },
-                    { v:'card', t:'Credit / Debit Card', d:'Visa, MC, RuPay, Amex · via Razorpay' },
-                    { v:'netbanking', t:'Net Banking', d:'All major banks' },
-                    { v:'wallet', t:'Wallets', d:'Paytm, Mobikwik, Amazon Pay' },
-                    { v:'cod', t:'Cash on Delivery', d:'Pay when you receive' },
+                    { v:'card', t:'Credit / Debit Card', d:'Card processing integration pending' },
+                    { v:'ach_wire', t:'Online ACH & Wire', d:'Bank transfer verification pending' },
+                    { v:'credits', t:'SUNBLISS Credits', d:'Earned from purchases — coming soon' },
                   ].map(o => (
                     <label key={o.v} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer ${pay===o.v?'border-primary bg-primary/5':''}`}>
-                      <RadioGroupItem value={o.v} id={o.v} />
+                      <RadioGroupItem value={o.v} id={o.v} disabled={o.v !== 'card'} />
                       <div><div className="font-semibold">{o.t}</div><div className="text-xs text-muted-foreground">{o.d}</div></div>
                     </label>
                   ))}
                 </RadioGroup>
-                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck size={14} /> Encrypted &amp; PCI DSS compliant</div>
+                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck size={14} /> Payment processing must be verified before fulfillment</div>
               </>
             )}
             {step === 3 && (
