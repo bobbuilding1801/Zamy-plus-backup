@@ -55,7 +55,7 @@ export default function InvoicePage() {
               <div className="mt-1">{order.address?.name || '—'}</div>
               <div>{order.address?.line1}</div>
               <div>{order.address?.city} {order.address?.pin}</div>
-              <div>{order.address?.country || 'India'}</div>
+              <div>{order.address?.country || 'United States'}</div>
               {order.address?.mobile && <div>Ph: {order.address.mobile}</div>}
               {order.address?.email && <div>{order.address.email}</div>}
             </div>
@@ -91,7 +91,7 @@ export default function InvoicePage() {
           <div className="mt-4 ml-auto w-64 space-y-1 text-sm">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(subtotal)}</span></div>
             <div className="flex justify-between"><span>Shipping</span><span>{shipping ? formatINR(shipping) : 'Free'}</span></div>
-            <div className="flex justify-between"><span>Tax (5% GST)</span><span>{formatINR(tax)}</span></div>
+            <div className="flex justify-between"><span>Tax (estimated 5%)</span><span>{formatINR(tax)}</span></div>
             <div className="flex justify-between border-t pt-2 mt-2 text-lg font-black"><span>Total</span><span>{formatINR(order.total)}</span></div>
           </div>
 
