@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useShop, formatINR } from '@/lib/store'
 import { Download, Printer } from 'lucide-react'
-import { ZAMY_LOGO } from '@/lib/logo'
 
 export default function InvoicePage() {
   const { id } = useParams()
@@ -38,10 +37,10 @@ export default function InvoicePage() {
         <div className="bg-white text-black rounded-2xl border shadow-premium p-8 print:shadow-none print:border-0 print:p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <img src={ZAMY_LOGO} className="h-14 w-14 rounded-full bg-black object-cover" alt="ZAMY" />
+              <img src="/WhatsApp%20Image%202026-10-21%20at%2010.25.14%20PM.jpeg" className="h-16 w-28 bg-white object-contain" alt="SUNBLISS" />
               <div>
-                <div className="font-black text-2xl tracking-widest">ZAMY</div>
-                <div className="text-xs text-neutral-500">Premium Marketplace</div>
+                <div className="font-black text-2xl tracking-widest">SUNBLISS</div>
+                <div className="text-xs text-neutral-500">Seller</div>
               </div>
             </div>
             <div className="text-right">
@@ -62,9 +61,7 @@ export default function InvoicePage() {
             </div>
             <div className="text-right">
               <div className="text-xs uppercase text-neutral-500 font-bold">Seller</div>
-              <div className="mt-1">ZAMY Direct</div>
-              <div>Bengaluru, Karnataka</div>
-              <div>GSTIN: 29ZAMY0000A1Z5</div>
+              <div className="mt-1">SUNBLISS</div>
               <div className="mt-3 text-xs uppercase text-neutral-500 font-bold">Payment</div>
               <div className="mt-1 uppercase">{order.payment || 'UPI'} · Paid</div>
             </div>
@@ -99,8 +96,8 @@ export default function InvoicePage() {
           </div>
 
           <div className="mt-10 pt-4 border-t text-center text-xs text-neutral-500">
-            Thank you for shopping with ZAMY. This is a computer-generated invoice.<br />
-            Questions? support@zamy.market · zamy.market
+            Thank you for shopping with SUNBLISS on ZAMY. This is a computer-generated invoice.<br />
+            For assistance, contact the seller through ZAMY.
           </div>
         </div>
       </div>
