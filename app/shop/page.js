@@ -33,8 +33,8 @@ function Filters({ filters, setFilters, categories }) {
         <h3 className="font-bold text-sm mb-2">Price</h3>
         <Slider value={[filters.minPrice, filters.maxPrice]} min={0} max={200000} step={500} onValueChange={(v) => setFilters(f => ({ ...f, minPrice:v[0], maxPrice:v[1] }))} />
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span>₹{filters.minPrice.toLocaleString()}</span>
-          <span>₹{filters.maxPrice.toLocaleString()}</span>
+          <span>${filters.minPrice.toLocaleString('en-US')}</span>
+          <span>${filters.maxPrice.toLocaleString('en-US')}</span>
         </div>
       </div>
       <div>
