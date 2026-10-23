@@ -59,11 +59,11 @@ export default function Header() {
       <div className="bg-black text-white text-[11px] md:text-xs overflow-hidden">
         <div className="container px-4 h-8 flex items-center justify-between">
           <div className="hidden md:flex gap-4 text-white/70">
-            <span>Ship to 🇮🇳 India</span>
+            <span>Ship to 🇺🇸 United States</span>
             <span>|</span>
             <span>24×7 Customer Support</span>
           </div>
-          <div className="whitespace-nowrap font-semibold text-primary">{storeSettings?.announcement ?? '₹500 flat delivery across India'}</div>
+          <div className="whitespace-nowrap font-semibold text-primary">{storeSettings?.announcement ?? 'Shipping calculated at checkout'}</div>
           <div className="hidden md:flex gap-4 text-white/70">
             <Link href="/account" className="hover:text-primary">Track Order</Link>
             <Link href="/help" className="hover:text-primary">Help</Link>
@@ -144,7 +144,7 @@ export default function Header() {
                       <div className="text-sm font-semibold truncate">{s.name}</div>
                       <div className="text-[11px] text-muted-foreground">{s.brand} · {s.subcategory}</div>
                     </div>
-                    <div className="text-sm font-bold">₹{s.price.toLocaleString()}</div>
+                    <div className="text-sm font-bold">${Number(s.price||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                   </Link>
                 ))}
                 <button type="submit" onClick={submit} className="w-full text-sm p-3 border-t hover:bg-secondary text-primary font-semibold">See all results for “{q}” →</button>
