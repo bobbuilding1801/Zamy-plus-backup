@@ -127,8 +127,8 @@ function Inner() {
                   </defs>
                   <CartesianGrid stroke={GREY} vertical={false} />
                   <XAxis dataKey="date" tick={{fontSize:10}} tickFormatter={(v)=>v.slice(5)} />
-                  <YAxis tick={{fontSize:10}} tickFormatter={(v)=>'₹'+(v/1000).toFixed(0)+'k'} />
-                  <Tooltip formatter={(v)=>['₹'+v.toLocaleString(),'Revenue']} />
+                  <YAxis tick={{fontSize:10}} tickFormatter={(v)=>'$'+(v/1000).toFixed(0)+'k'} />
+                  <Tooltip formatter={(v)=>['$'+v.toLocaleString(),'Revenue']} />
                   <Area type="monotone" dataKey="revenue" stroke={BLACK} strokeWidth={2} fill="url(#g1)" />
                 </AreaChart>
               </ResponsiveContainer>
