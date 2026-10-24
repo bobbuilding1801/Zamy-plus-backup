@@ -232,14 +232,14 @@ async function handler(request, { params }) {
       const profile = existing || { id: uuidv4(), email: em, createdAt: Date.now() }
       if (!existing) await database.collection('customers').insertOne(profile)
       const token = makeToken(em, 'customer')
-      return cors(NextResponse.json({ ok:true, email: em, role: 'customer', token, profile: { id: profile.id, email: profile.email, name: profile.name, createdAt: profile.createdAt } }))
+      return cors(NextResponse.json({ ok:true, email: em, role: 'customer', token, profile: { id: profile.id, email: profile.email, name: profile.name, mobile: profile.mobile || '', createdAt: profile.createdAt } }))
     }
     if (route === '/customer/me' && method === 'GET') {
       const t = requireAuth(request, 'customer')
       if (!t) return cors(NextResponse.json({ ok:false }, { status: 401 }))
       const database = await getDb().catch(() => null)
       const profile = database ? await database.collection('customers').findOne({ email: t.email }) : null
-      return cors(NextResponse.json({ ok:true, email: t.email, profile: profile ? { id: profile.id, email: profile.email, name: profile.name, createdAt: profile.createdAt } : { email: t.email } }))
+      return cors(NextResponse.json({ ok:true, email: t.email, profile: profile ? { id: profile.id, email: profile.email, name: profile.name, mobile: profile.mobile || '', createdAt: profile.createdAt } : { email: t.email } }))
     }
     if (route === '/customer/update' && method === 'POST') {
       const t = requireAuth(request, 'customer')
