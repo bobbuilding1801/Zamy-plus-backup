@@ -105,6 +105,11 @@ export default function Header() {
               />
             </div>
 
+          <Link href="/" aria-label="Go to homepage" className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-2.5 py-2 text-sm font-semibold hover:border-primary hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <span className="hidden lg:inline">Home</span>
+            <span className="lg:hidden">⌂</span>
+          </Link>
+
           {/* Category mega dropdown */}
           <Popover>
             <PopoverTrigger asChild>
